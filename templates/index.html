@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image to ASCII Converter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        #terminal {
+            background-color: #000;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            padding: 10px;
+            border-radius: 5px;
+            height: 200px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+        #terminalOutput {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        #inputLine {
+            display: flex;
+            align-items: center;
+        }
+        #promptSymbol {
+            margin-right: 5px;
+        }
+        #terminalInput {
+            background-color: transparent;
+            border: none;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            flex-grow: 1;
+            outline: none;
+        }
+        #fileInput {
+            display: none;
+        }
+        #asciiResult {
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            font-family: monospace;
+            white-space: pre;
+            overflow-x: auto;
+            font-size: 8px;
+            line-height: 1;
+        }
+    </style>
+</head>
+<body>
+    <h1>Image to ASCII Converter</h1>
+    <div id="terminal">
+        <div id="terminalOutput"></div>
+        <div id="inputLine">
+            <span id="promptSymbol">$</span>
+            <input type="text" id="terminalInput" autofocus>
+        </div>
+    </div>
+    <div id="asciiResult"></div>
+    <input type="file" id="fileInput" accept="image/*">
+
+    <script>
+        const terminal = document.getElementById('terminalOutput');
+        const input = document.getElementById('terminalInput');
+        const fileInput = document.getElementById('fileInput');
+        const asciiResult = document.getElementById('asciiResult');
+
+        function printToTerminal(text) {
+            terminal.innerHTML += text + '\n';
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        input.addEventListener('keydown', async (e) => {
+            if (e.key === 'Enter') {
+                const command = input.value.trim();
+                printToTerminal('$ ' + command);
+                input.value = '';
+
+                if (command === 'help') {
+                    printToTerminal('Available commands:');
+                    printToTerminal('  help - Show this help message');
+                    printToTerminal('  convert - Convert an image to ASCII');
+                    printToTerminal('  clear - Clear the terminal and result');
+                } else if (command === 'convert') {
+                    fileInput.click();
+                } else if (command === 'clear') {
+                    terminal.innerHTML = '';
+                    asciiResult.innerHTML = '';
+                } else {
+                    printToTerminal('Unknown command. Type "help" for available commands.');
+                }
+            }
+        });
+
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                printToTerminal('Converting image...');
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                try {
+                    const response = await fetch('/convert', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (response.ok) {
+                        const result = await response.text();
+                        asciiResult.textContent = result;
+                        printToTerminal('Conversion complete. ASCII art displayed below.');
+                    } else {
+                        printToTerminal('Error: Failed to convert image.');
+                    }
+                } catch (error) {
+                    printToTerminal('Error: ' + error.message);
+                }
+            }
+        });
+
+        // Initial message
+        printToTerminal('Welcome to the Image to ASCII Converter!');
+        printToTerminal('Type "help" for available commands.');
+    </script>
+</body>
+</html>
