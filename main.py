@@ -1,10 +1,10 @@
-import re
 from fastapi import FastAPI, File, UploadFile, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import PlainTextResponse
 from PIL import Image
 import io
 import ascii_magic
+import re
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
@@ -28,3 +28,8 @@ async def convert_image(file: UploadFile = File(...)):
 @app.get("/")
 async def main(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
+
+# This is for local development
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
